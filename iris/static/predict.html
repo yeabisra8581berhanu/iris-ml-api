@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Prediction - Iris Species Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-10">
+    <div class="max-w-2xl mx-auto">
+        <!-- Navigation -->
+        <div class="mb-6">
+            <a href="/" class="text-blue-600 hover:text-blue-800 font-semibold">← Back to Home</a>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white p-8 rounded-xl shadow-lg">
+            <h1 class="text-3xl font-bold mb-2 text-center text-gray-800">Iris Species Predictor</h1>
+            <p class="text-center text-gray-600 mb-8">Enter the measurements to predict the iris species</p>
+            
+            <div class="space-y-6">
+                <!-- Input Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sepal Length (cm)</label>
+                        <input id="sl" type="number" step="0.1" placeholder="e.g., 5.1" 
+                               class="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sepal Width (cm)</label>
+                        <input id="sw" type="number" step="0.1" placeholder="e.g., 3.5" 
+                               class="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Petal Length (cm)</label>
+                        <input id="pl" type="number" step="0.1" placeholder="e.g., 1.4" 
+                               class="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Petal Width (cm)</label>
+                        <input id="pw" type="number" step="0.1" placeholder="e.g., 0.2" 
+                               class="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-blue-500 focus:outline-none">
+                    </div>
+                </div>
+                
+                <!-- Model Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Model</label>
+                    <select id="model" class="w-full border-2 border-gray-300 p-3 rounded-lg focus:border-blue-500 focus:outline-none">
+                        <option value="logistic">Logistic Regression</option>
+                        <option value="decision_tree">Decision Tree</option>
+                    </select>
+                </div>
+                
+                <!-- Predict Button -->
+                <button onclick="makePrediction()" 
+                        class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 font-semibold text-lg shadow-md transition-all duration-200 transform hover:scale-105">
+                    Predict Species
+                </button>
+            </div>
+            
+            <!-- Result Display -->
+            <div id="result" class="mt-8 text-center"></div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="mt-6 bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">About Iris Species</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="font-bold text-purple-700 mb-1">Setosa</div>
+                    <div class="text-gray-600">Distinctive, easy to identify</div>
+                </div>
+                <div class="text-center p-4 bg-pink-50 rounded-lg">
+                    <div class="font-bold text-pink-700 mb-1">Versicolor</div>
+                    <div class="text-gray-600">Medium-sized petals</div>
+                </div>
+                <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                    <div class="font-bold text-indigo-700 mb-1">Virginica</div>
+                    <div class="text-gray-600">Largest petals</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Automatically detect API URL based on current host
+        const api_url = window.location.origin + "/predict";
+        
+        async function makePrediction() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="text-blue-600 font-semibold">Predicting...</div>';
+            
+            try {
+                const payload = {
+                    sepal_length: parseFloat(document.getElementById('sl').value),
+                    sepal_width: parseFloat(document.getElementById('sw').value),
+                    petal_length: parseFloat(document.getElementById('pl').value),
+                    petal_width: parseFloat(document.getElementById('pw').value),
+                    model_choice: document.getElementById('model').value
+                };
+
+                // Validate inputs
+                if (isNaN(payload.sepal_length) || isNaN(payload.sepal_width) || 
+                    isNaN(payload.petal_length) || isNaN(payload.petal_width)) {
+                    throw new Error("Please fill in all fields with valid numbers");
+                }
+
+                const response = await fetch(api_url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const species = data.prediction;
+                
+                // Display result with styling based on species
+                let bgColor = 'bg-green-100';
+                let textColor = 'text-green-800';
+                let borderColor = 'border-green-500';
+                
+                if (species === 'Setosa') {
+                    bgColor = 'bg-purple-100';
+                    textColor = 'text-purple-800';
+                    borderColor = 'border-purple-500';
+                } else if (species === 'Versicolor') {
+                    bgColor = 'bg-pink-100';
+                    textColor = 'text-pink-800';
+                    borderColor = 'border-pink-500';
+                } else if (species === 'Virginica') {
+                    bgColor = 'bg-indigo-100';
+                    textColor = 'text-indigo-800';
+                    borderColor = 'border-indigo-500';
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="${bgColor} ${textColor} ${borderColor} border-2 p-6 rounded-lg">
+                        <div class="text-2xl font-bold mb-2">Predicted Species</div>
+                        <div class="text-4xl font-extrabold">${species}</div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="bg-red-100 text-red-800 border-2 border-red-500 p-4 rounded-lg">
+                        <div class="font-semibold">Error</div>
+                        <div>${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Allow Enter key to trigger prediction
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                makePrediction();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
