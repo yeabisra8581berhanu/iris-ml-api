@@ -2,7 +2,7 @@
 
 
 Deployed Backend Link:
-https://iris-ml-api.onrender.com
+http://localhost:8000/docs
 
 Deployed Frontend Link:
-https://iris-ml-frontend.vercel.app
+http://localhost:8000/
